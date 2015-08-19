@@ -47,7 +47,14 @@ sp.communicate()
 sp = subprocess.Popen(["banzai", "./spec.so", random_seed, ",".join(fields), ",".join(fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
 
-print err
+# Read err into a hash table, one for each variable in fields
+spec_output = dict();
+for field in fields:
+  spec_output[field] = []
+records = err.splitlines()
+for record in records:
+  [name, value] = record.split()
+  spec_output[name] += [value]
 
 sp = subprocess.Popen(["banzai", "./impl.so", random_seed, ",".join(fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
