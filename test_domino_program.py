@@ -20,6 +20,10 @@ for rename in renames :
   [orig, renamed] = rename.split()
   rename_dict[orig] = renamed
 
+# Print out source file
+file_handle = open(source_file, 'r');
+print file_handle.read();
+
 # Get number of pipeline stages
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = sp.communicate()
@@ -77,10 +81,18 @@ for record in records:
   [name, value] = record.split()
   impl_output[name] += [value]
 
+# One file each for spec and impl output
+spec_file_out = open("spec.output", "w")
+impl_file_out = open("impl.output", "w")
+
 # Compare spec_output with impl_output
 for input_field in fields:
   output_field = spec_to_impl_mapping[input_field]
+  spec_file_out.write("\n" + input_field + "\n")
+  spec_file_out.write("\n".join([str(x) for x in spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]]));
+  impl_file_out.write(output_field)
+  impl_file_out.write("\n".join([str(x) for x in impl_output[output_field]]));
   if (spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)] != impl_output[output_field]):
-    print "input_field ", input_field, "output_field", output_field
+    print "input_field ", input_field, "and output_field", output_field, " differ in their output sequence"
     print spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]
     print impl_output[output_field]
