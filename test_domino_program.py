@@ -34,6 +34,9 @@ for line in lines:
     pipeline_length = int(line.split()[1])
 assert(pipeline_length > 0)
 
+# Log dot graph to stderr
+print >> sys.stderr, err
+
 # Match up fields
 # from spec to implementation
 spec_to_impl_mapping = dict()
