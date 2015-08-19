@@ -94,7 +94,7 @@ for input_field in fields:
   output_field = spec_to_impl_mapping[input_field]
   spec_file_out.write("\n" + input_field + "\n")
   spec_file_out.write("\n".join([str(x) for x in spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]]));
-  impl_file_out.write(output_field)
+  impl_file_out.write("\n" + output_field + "\n")
   impl_file_out.write("\n".join([str(x) for x in impl_output[output_field]]));
   if (spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)] != impl_output[output_field]):
     print "input_field ", input_field, "and output_field", output_field, " differ in their output sequence"
