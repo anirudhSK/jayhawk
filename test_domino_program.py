@@ -69,3 +69,10 @@ records = err.splitlines()
 for record in records:
   [name, value] = record.split()
   impl_output[name] += [value]
+
+# Compare spec_output with impl_output
+for input_field in fields:
+  output_field = spec_to_impl_mapping[input_field]
+  print "input_field ", input_field, "output_field", output_field
+  print spec_output[input_field]
+  print impl_output[output_field]
