@@ -1,17 +1,22 @@
 #! /usr/bin/python
 
+# Imports
 import sys
 import subprocess
+
+# Command line arguments
 source_file = sys.argv[1]
 random_seed = int(sys.argv[2])
 pipeline_length = 0
 
-# Get all original fields
+# Get all original fields from spec/source
 sp = subprocess.Popen(["domino", source_file, "gen_pkt_fields"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
 out, err = sp.communicate()
-fields = out.splitlines()
+original_fields = out.splitlines()
 
 # Get all renames from SSA
+# All lines in stderr start with //
+# to ensure it's treated as a comment for .dot output
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = sp.communicate()
 lines = err.splitlines()
@@ -21,11 +26,10 @@ for line in lines:
     [_, orig, renamed] = line.split()
     rename_dict[orig] = renamed
 
-# Print out source file
-file_handle = open(source_file, 'r');
-print file_handle.read();
+# Print out source file to stdout
+print open(source_file, 'r').read();
 
-# Get number of pipeline stages
+# Get number of pipeline stages, (written by partitioning pass)
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = sp.communicate()
 lines = err.splitlines()
@@ -34,24 +38,25 @@ for line in lines:
     pipeline_length = int(line.split()[1])
 assert(pipeline_length > 0)
 
-# Log dot graph to stderr
+# Print out dot graph to stderr
 print >> sys.stderr, err
 
-# Match up fields
-# from spec to implementation
+# Match up fields from spec to implementation
 spec_to_impl_mapping = dict()
-for field in fields:
+for field in original_fields:
   if field in rename_dict:
     spec_to_impl_mapping[field] = rename_dict[field]
   else:
     spec_to_impl_mapping[field] = field
 
 # Generate output fields in impl
+# (the ones we need to check for),
+# based on spec_to_impl_mapping
 output_fields_in_impl = []
 for field in spec_to_impl_mapping:
   output_fields_in_impl += [spec_to_impl_mapping[field]];
 
-# Compile spec.so and impl.so
+# Compile to spec.so and to impl.so
 sp = subprocess.Popen(["domino", source_file, "banzai_binary"], stdout = open("./spec.so", "w"), stderr = open("/dev/null", "w"))
 sp.communicate()
 
@@ -59,12 +64,12 @@ sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,exp
 sp.communicate()
 
 # Run spec.so on banzai
-sp = subprocess.Popen(["banzai", "./spec.so", str(random_seed), ",".join(fields), ",".join(fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
+sp = subprocess.Popen(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
 
 # Read err into a hash table, one for each variable in fields
 spec_output = dict();
-for field in fields:
+for field in original_fields:
   spec_output[field] = []
 records = err.splitlines()
 for record in records:
@@ -72,8 +77,7 @@ for record in records:
   spec_output[name] += [value]
 
 # Run impl.so on banzai
-
-sp = subprocess.Popen(["banzai", "./impl.so", str(random_seed), ",".join(fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
+sp = subprocess.Popen(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
 
 # Read err into a hash table, one for each variable in output_fields_in_impl
@@ -90,7 +94,8 @@ spec_file_out = open("spec.output", "w")
 impl_file_out = open("impl.output", "w")
 
 # Compare spec_output with impl_output
-for input_field in fields:
+for input_field in original_fields:
+  # Get equivalent fields
   output_field = spec_to_impl_mapping[input_field]
   spec_file_out.write("\n" + input_field + "\n")
   spec_file_out.write("\n".join([str(x) for x in spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]]));
