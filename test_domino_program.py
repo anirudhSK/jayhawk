@@ -37,7 +37,7 @@ for field in spec_to_impl_mapping:
 sp = subprocess.Popen(["domino", source_file, "banzai_binary"], stdout = open("./spec.so", "w"), stderr = open("/dev/null", "w"))
 sp.communicate()
 
-sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,banzai_binary"], stdout = open("./impl.so", "w"), stderr = open("/dev/null", "w"))
+sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"], stdout = open("./impl.so", "w"), stderr = open("/dev/null", "w"))
 sp.communicate()
 
 # Run spec.so on banzai
