@@ -4,7 +4,7 @@ import sys
 import subprocess
 source_file = sys.argv[1]
 random_seed = int(sys.argv[2])
-pipeline_length = int(sys.argv[3])
+pipeline_length = 0
 
 # Get all original fields
 sp = subprocess.Popen(["domino", source_file, "gen_pkt_fields"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
@@ -19,6 +19,15 @@ rename_dict = dict()
 for rename in renames :
   [orig, renamed] = rename.split()
   rename_dict[orig] = renamed
+
+# Get number of pipeline stages
+sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+out, err = sp.communicate()
+lines = err.splitlines()
+for line in lines:
+  if (line.startswith("//")):
+    pipeline_length = int(line.split()[1])
+assert(pipeline_length > 0)
 
 # Match up fields
 # from spec to implementation
