@@ -14,11 +14,12 @@ fields = out.splitlines()
 # Get all renames from SSA
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = sp.communicate()
-renames = err.splitlines()
+lines = err.splitlines()
 rename_dict = dict()
-for rename in renames :
-  [orig, renamed] = rename.split()
-  rename_dict[orig] = renamed
+for line in lines:
+  if (line.startswith("//")):
+    [_, orig, renamed] = line.split()
+    rename_dict[orig] = renamed
 
 # Print out source file
 file_handle = open(source_file, 'r');
@@ -29,7 +30,7 @@ sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,exp
 out, err = sp.communicate()
 lines = err.splitlines()
 for line in lines:
-  if (line.startswith("//")):
+  if (line.startswith("//") and line.endswith("stages")):
     pipeline_length = int(line.split()[1])
 assert(pipeline_length > 0)
 
