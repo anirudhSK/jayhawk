@@ -43,7 +43,7 @@ sp.communicate()
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,banzai_binary"], stdout = open("./impl.so", "w"), stderr = open("/dev/null", "w"))
 sp.communicate()
 
-# Run both spec.so and impl.so on banzai
+# Run spec.so on banzai
 sp = subprocess.Popen(["banzai", "./spec.so", random_seed, ",".join(fields), ",".join(fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
 
@@ -56,6 +56,16 @@ for record in records:
   [name, value] = record.split()
   spec_output[name] += [value]
 
+# Run impl.so on banzai
+
 sp = subprocess.Popen(["banzai", "./impl.so", random_seed, ",".join(fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
-print err
+
+# Read err into a hash table, one for each variable in output_fields_in_impl
+impl_output = dict();
+for field in output_fields_in_impl:
+  impl_output[field] = []
+records = err.splitlines()
+for record in records:
+  [name, value] = record.split()
+  impl_output[name] += [value]
