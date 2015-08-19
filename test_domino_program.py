@@ -3,7 +3,8 @@
 import sys
 import subprocess
 source_file = sys.argv[1]
-random_seed = sys.argv[2]
+random_seed = int(sys.argv[2])
+pipeline_length = int(sys.argv[3])
 
 # Get all renames from SSA
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
@@ -41,7 +42,7 @@ sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,exp
 sp.communicate()
 
 # Run spec.so on banzai
-sp = subprocess.Popen(["banzai", "./spec.so", random_seed, ",".join(fields), ",".join(fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
+sp = subprocess.Popen(["banzai", "./spec.so", str(random_seed), ",".join(fields), ",".join(fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
 
 # Read err into a hash table, one for each variable in fields
@@ -55,7 +56,7 @@ for record in records:
 
 # Run impl.so on banzai
 
-sp = subprocess.Popen(["banzai", "./impl.so", random_seed, ",".join(fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
+sp = subprocess.Popen(["banzai", "./impl.so", str(random_seed), ",".join(fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
 out, err = sp.communicate()
 
 # Read err into a hash table, one for each variable in output_fields_in_impl
@@ -70,7 +71,7 @@ for record in records:
 # Compare spec_output with impl_output
 for input_field in fields:
   output_field = spec_to_impl_mapping[input_field]
-  if (spec_output[input_field] != impl_output[output_field]):
+  if (spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)] != impl_output[output_field]):
     print "input_field ", input_field, "output_field", output_field
-    print spec_output[input_field]
+    print spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]
     print impl_output[output_field]
