@@ -6,6 +6,11 @@ source_file = sys.argv[1]
 random_seed = int(sys.argv[2])
 pipeline_length = int(sys.argv[3])
 
+# Get all original fields
+sp = subprocess.Popen(["domino", source_file, "gen_pkt_fields"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+out, err = sp.communicate()
+fields = out.splitlines()
+
 # Get all renames from SSA
 sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
 out, err = sp.communicate()
@@ -14,11 +19,6 @@ rename_dict = dict()
 for rename in renames :
   [orig, renamed] = rename.split()
   rename_dict[orig] = renamed
-
-# Get all original fields
-sp = subprocess.Popen(["domino", source_file, "gen_pkt_fields"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-out, err = sp.communicate()
-fields = out.splitlines()
 
 # Match up fields
 # from spec to implementation
