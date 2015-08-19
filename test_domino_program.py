@@ -28,9 +28,6 @@ for field in fields:
   else:
     spec_to_impl_mapping[field] = field
 
-# Print out mapping
-print spec_to_impl_mapping
-
 # Generate output fields in impl
 output_fields_in_impl = []
 for field in spec_to_impl_mapping:
@@ -73,6 +70,7 @@ for record in records:
 # Compare spec_output with impl_output
 for input_field in fields:
   output_field = spec_to_impl_mapping[input_field]
-  print "input_field ", input_field, "output_field", output_field
-  print spec_output[input_field]
-  print impl_output[output_field]
+  if (spec_output[input_field] != impl_output[output_field]):
+    print "input_field ", input_field, "output_field", output_field
+    print spec_output[input_field]
+    print impl_output[output_field]
