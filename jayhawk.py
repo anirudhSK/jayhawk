@@ -7,8 +7,8 @@ import subprocess
 # Program wrapper
 # Takes a command line of program arguements,
 # executes it, and prints something out whether it succeeds or fails
-def program_wrapper(program):
-  sp = subprocess.Popen(program, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+def program_wrapper(program, t_stdout = subprocess.PIPE, t_stderr = subprocess.PIPE):
+  sp = subprocess.Popen(program, stdout = t_stdout, stderr = t_stderr)
   out, err = sp.communicate()
   if (sp.returncode != 0):
     print " ".join(program), " failed with stdout:"
