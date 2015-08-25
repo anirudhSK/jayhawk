@@ -4,14 +4,29 @@
 import sys
 import subprocess
 
+# Program wrapper
+# Takes a command line of program arguements,
+# executes it, and prints something out whether it succeeds or fails
+def program_wrapper(program):
+  sp = subprocess.Popen(program, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+  out, err = sp.communicate()
+  if (sp.returncode != 0):
+    print " ".join(program), " failed with stdout:"
+    print out
+    print "stderr:"
+    print err
+    sys.exit(sp.returncode)
+  else :
+    print " ".join(program), " succeeded"
+    return (out, err)
+
 # Command line arguments
 source_file = sys.argv[1]
 random_seed = int(sys.argv[2])
 pipeline_length = 0
 
 # Get all original fields from spec/source
-sp = subprocess.Popen(["domino", source_file, "gen_pkt_fields"], stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-out, err = sp.communicate()
+out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
 # Get all renames from SSA
