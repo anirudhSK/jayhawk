@@ -32,8 +32,7 @@ original_fields = out.splitlines()
 # Get all renames from SSA
 # All lines in stderr start with //
 # to ensure it's treated as a comment for .dot output
-sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-out, err = sp.communicate()
+out, err = program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"])
 lines = err.splitlines()
 rename_dict = dict()
 for line in lines:
@@ -45,8 +44,7 @@ for line in lines:
 print open(source_file, 'r').read();
 
 # Get number of pipeline stages, (written by partitioning pass)
-sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-out, err = sp.communicate()
+out, err = program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"])
 lines = err.splitlines()
 for line in lines:
   if (line.startswith("//") and line.endswith("stages")):
@@ -72,15 +70,11 @@ for field in spec_to_impl_mapping:
   output_fields_in_impl += [spec_to_impl_mapping[field]];
 
 # Compile to spec.so and to impl.so
-sp = subprocess.Popen(["domino", source_file, "banzai_binary"], stdout = open("./spec.so", "w"), stderr = open("/dev/null", "w"))
-sp.communicate()
-
-sp = subprocess.Popen(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"], stdout = open("./impl.so", "w"), stderr = open("/dev/null", "w"))
-sp.communicate()
+program_wrapper(["domino", source_file, "banzai_binary"], t_stdout = open("./spec.so", "w"), t_stderr = open("/dev/null", "w"))
+program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"], t_stdout = open("./impl.so", "w"), t_stderr = open("/dev/null", "w"))
 
 # Run spec.so on banzai
-sp = subprocess.Popen(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
-out, err = sp.communicate()
+out, err = program_wrapper(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields)], t_stderr = subprocess.PIPE, t_stdout = open("/dev/null", "w"));
 
 # Read err into a hash table, one for each variable in fields
 spec_output = dict();
@@ -92,8 +86,7 @@ for record in records:
   spec_output[name] += [value]
 
 # Run impl.so on banzai
-sp = subprocess.Popen(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl)], stderr = subprocess.PIPE, stdout = open("/dev/null", "w"));
-out, err = sp.communicate()
+out,err = program_wrapper(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl)], t_stderr = subprocess.PIPE, t_stdout = open("/dev/null", "w"));
 
 # Read err into a hash table, one for each variable in output_fields_in_impl
 impl_output = dict();
