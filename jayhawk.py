@@ -72,15 +72,13 @@ for field in spec_to_impl_mapping:
 # Compile to spec.so and to impl.so
 program_wrapper(["domino", source_file, "banzai_binary"],
                 t_stdout = open("./spec.so", "w"),
-                t_stderr = open("/dev/null", "w"))
+                t_stderr = subprocess.PIPE)
 program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"],
                 t_stdout = open("./impl.so", "w"),
-                t_stderr = open("/dev/null", "w"))
+                t_stderr = subprocess.PIPE)
 
 # Run spec.so on banzai
-out, err = program_wrapper(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields)],
-                           t_stderr = subprocess.PIPE,
-                           t_stdout = open("/dev/null", "w"));
+out, err = program_wrapper(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields)]);
 
 # Read err into a hash table, one for each variable in fields
 spec_output = dict();
@@ -92,9 +90,7 @@ for record in records:
   spec_output[name] += [value]
 
 # Run impl.so on banzai
-out,err = program_wrapper(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl)],
-                          t_stderr = subprocess.PIPE,
-                          t_stdout = open("/dev/null", "w"));
+out,err = program_wrapper(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl)]);
 
 # Read err into a hash table, one for each variable in output_fields_in_impl
 impl_output = dict();
