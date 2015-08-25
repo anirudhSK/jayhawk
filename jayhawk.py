@@ -115,5 +115,5 @@ for input_field in original_fields:
   impl_file_out.write("\n".join([str(x) for x in impl_output[output_field]]));
   if (spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)] != impl_output[output_field]):
     print "input_field ", input_field, "and output_field", output_field, " differ in their output sequence"
-    print spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]
-    print impl_output[output_field]
+    sys.exit(1)
+print "spec and implementation match"
