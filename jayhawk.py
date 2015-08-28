@@ -32,7 +32,7 @@ original_fields = out.splitlines()
 # Get all renames from SSA
 # All lines in stderr start with //
 # to ensure it's treated as a comment for .dot output
-out, err = program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"])
+out, err = program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa"])
 lines = err.splitlines()
 rename_dict = dict()
 for line in lines:
