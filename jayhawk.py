@@ -44,7 +44,7 @@ for line in lines:
 print open(source_file, 'r').read();
 
 # Get number of pipeline stages, (written by partitioning pass)
-out, err = program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"])
+out, err = program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"])
 lines = err.splitlines()
 for line in lines:
   if (line.startswith("//") and line.endswith("stages")):
@@ -70,10 +70,10 @@ for field in spec_to_impl_mapping:
   output_fields_in_impl += [spec_to_impl_mapping[field]];
 
 # Compile to spec.so and to impl.so
-program_wrapper(["domino", source_file, "banzai_binary"],
+program_wrapper(["domino", source_file, "desugar_comp_asgn,banzai_binary"],
                 t_stdout = open("./spec.so", "w"),
                 t_stderr = subprocess.PIPE)
-program_wrapper(["domino", source_file, "if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"],
+program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,strength_reducer,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"],
                 t_stdout = open("./impl.so", "w"),
                 t_stderr = subprocess.PIPE)
 
