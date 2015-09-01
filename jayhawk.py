@@ -30,7 +30,7 @@ out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
 # CSV of all passes before partitioning and banzai_binary
-pass_list = "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,stateful_flanks,ssa";
+pass_list = "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,stateful_flanks,ssa,expr_propagater";
 
 # Get all renames from SSA
 # All lines in stderr start with //
