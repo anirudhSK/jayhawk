@@ -30,10 +30,14 @@ num_ticks = int(sys.argv[3])
 out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
+# List out all passes
+frontend_passes = "desugar_comp_asgn";
+midend_passes   = "if_converter,algebra_simplify,expr_flattener,expr_propagater,stateful_flanks,ssa"
+
 # Get all renames from SSA
 # All lines in stderr start with //
 # to ensure it's treated as a comment for .dot output
-out, err = program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,expr_propagater,stateful_flanks,ssa"])
+out, err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes])
 lines = err.splitlines()
 rename_dict = dict()
 for line in lines:
@@ -45,7 +49,7 @@ for line in lines:
 print open(source_file, 'r').read();
 
 # Get number of pipeline stages, (written by partitioning pass)
-out, err = program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning"])
+out, err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning"])
 lines = err.splitlines()
 for line in lines:
   if (line.startswith("//") and line.endswith("stages")):
@@ -72,10 +76,10 @@ for field in spec_to_impl_mapping:
   output_fields_in_impl += [spec_to_impl_mapping[field]];
 
 # Compile to spec.so and to impl.so
-program_wrapper(["domino", source_file, "desugar_comp_asgn,banzai_binary"],
+program_wrapper(["domino", source_file, frontend_passes + ",banzai_binary"],
                 t_stdout = open("./spec.so", "w"),
                 t_stderr = subprocess.PIPE)
-program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,expr_propagater,stateful_flanks,ssa,partitioning,banzai_binary"],
+program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning,banzai_binary"],
                 t_stdout = open("./impl.so", "w"),
                 t_stderr = subprocess.PIPE)
 
