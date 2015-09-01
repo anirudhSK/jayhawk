@@ -31,7 +31,7 @@ out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
 # CSV of all passes before partitioning and banzai_binary
-pass_list = "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,stateful_flanks,ssa,expr_propagater";
+pass_list = "desugar_comp_asgn,if_converter,algebra_simplify,expr_flattener,expr_propagater,stateful_flanks,ssa";
 
 # Get all renames from SSA
 # All lines in stderr start with //
@@ -48,13 +48,7 @@ for line in lines:
 print open(source_file, 'r').read();
 
 # Get number of pipeline stages, (written by partitioning pass)
-out, err = program_wrapper(["domino", source_file, pass_list + ",partitioning"])
-lines = err.splitlines()
-for line in lines:
-  if (line.startswith("//") and line.endswith("stages")):
-    pipeline_length = int(line.split()[1])
-assert(pipeline_length > 0)
-assert(num_ticks > pipeline_length)
+pipeline_length = 1
 
 # Print out dot graph to stderr
 print >> sys.stderr, err
@@ -78,7 +72,7 @@ for field in spec_to_impl_mapping:
 program_wrapper(["domino", source_file, "desugar_comp_asgn,banzai_binary"],
                 t_stdout = open("./spec.so", "w"),
                 t_stderr = subprocess.PIPE)
-program_wrapper(["domino", source_file, pass_list + ",partitioning,banzai_binary"],
+program_wrapper(["domino", source_file, pass_list + ",banzai_binary"],
                 t_stdout = open("./impl.so", "w"),
                 t_stderr = subprocess.PIPE)
 
