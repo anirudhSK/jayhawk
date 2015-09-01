@@ -24,6 +24,7 @@ def program_wrapper(program, t_stdout = subprocess.PIPE, t_stderr = subprocess.P
 source_file = sys.argv[1]
 random_seed = int(sys.argv[2])
 pipeline_length = 0
+num_ticks = int(sys.argv[3])
 
 # Get all original fields from spec/source
 out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
@@ -50,6 +51,7 @@ for line in lines:
   if (line.startswith("//") and line.endswith("stages")):
     pipeline_length = int(line.split()[1])
 assert(pipeline_length > 0)
+assert(num_ticks > pipeline_length)
 
 # Print out dot graph to stderr
 print >> sys.stderr, err
@@ -78,7 +80,7 @@ program_wrapper(["domino", source_file, "desugar_comp_asgn,if_converter,algebra_
                 t_stderr = subprocess.PIPE)
 
 # Run spec.so on banzai
-out, err = program_wrapper(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields)]);
+out, err = program_wrapper(["banzai", "./spec.so", str(random_seed), ",".join(original_fields), ",".join(original_fields), str(num_ticks)]);
 
 # Read err into a hash table, one for each variable in fields
 spec_output = dict();
@@ -90,7 +92,7 @@ for record in records:
   spec_output[name] += [value]
 
 # Run impl.so on banzai
-out,err = program_wrapper(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl)]);
+out,err = program_wrapper(["banzai", "./impl.so", str(random_seed), ",".join(original_fields), ",".join(output_fields_in_impl), str(num_ticks)]);
 
 # Read err into a hash table, one for each variable in output_fields_in_impl
 impl_output = dict();
