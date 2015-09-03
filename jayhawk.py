@@ -31,8 +31,8 @@ out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
 # List out all passes
-frontend_passes = "desugar_comp_asgn";
-midend_passes   = "if_converter,algebra_simplify,stateful_flanks,ssa,expr_propagater"
+frontend_passes = "echo";
+midend_passes   = "if_converter,algebra_simplify,stateful_flanks"
 
 # Get all renames from SSA
 # All lines in stderr start with //
@@ -49,11 +49,11 @@ for line in lines:
 print open(source_file, 'r').read();
 
 # Get number of pipeline stages, (written by partitioning pass)
-out, err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning"])
-lines = err.splitlines()
-for line in lines:
-  if (line.startswith("//") and line.endswith("stages")):
-    pipeline_length = int(line.split()[1])
+##out, err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning"])
+##lines = err.splitlines()
+##for line in lines:
+##  if (line.startswith("//") and line.endswith("stages")):
+##    pipeline_length = int(line.split()[1])
 pipeline_length = 1
 assert(pipeline_length > 0)
 assert(num_ticks > pipeline_length)
