@@ -32,7 +32,7 @@ original_fields = out.splitlines()
 
 # List out all passes
 frontend_passes = "desugar_comp_asgn";
-midend_passes   = "if_converter,algebra_simplify,expr_flattener,stateful_flanks,ssa,expr_propagater"
+midend_passes   = "if_converter,algebra_simplify,stateful_flanks,ssa,expr_propagater"
 
 # Get all renames from SSA
 # All lines in stderr start with //
@@ -54,6 +54,7 @@ lines = err.splitlines()
 for line in lines:
   if (line.startswith("//") and line.endswith("stages")):
     pipeline_length = int(line.split()[1])
+pipeline_length = 1
 assert(pipeline_length > 0)
 assert(num_ticks > pipeline_length)
 
@@ -79,7 +80,7 @@ for field in spec_to_impl_mapping:
 program_wrapper(["domino", source_file, frontend_passes + ",banzai_binary"],
                 t_stdout = open("./spec.so", "w"),
                 t_stderr = subprocess.PIPE)
-program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning,banzai_binary"],
+program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",banzai_binary"],
                 t_stdout = open("./impl.so", "w"),
                 t_stderr = subprocess.PIPE)
 
