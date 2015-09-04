@@ -31,7 +31,7 @@ out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
 # List out all passes
-frontend_passes = "desugar_comp_asgn";
+frontend_passes = "int_type_checker,desugar_comp_asgn";
 midend_passes   = "if_converter,algebra_simplify,stateful_flanks,ssa,expr_propagater,expr_flattener"
 
 # Get all renames from SSA
