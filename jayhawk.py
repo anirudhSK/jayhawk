@@ -31,8 +31,9 @@ out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
 original_fields = out.splitlines()
 
 # List out all passes
-frontend_passes = "int_type_checker,desugar_comp_asgn";
-midend_passes   = "if_converter,algebra_simplify,array_validator,stateful_flanks,ssa,expr_propagater,expr_flattener"
+frontend_passes = "int_type_checker,desugar_comp_asgn,if_converter,algebra_simplify,array_validator,stateful_flanks,ssa";
+midend_passes   = "expr_propagater" # Move things that require SSA here like dead code elimination, CSE, constant propagation
+backend_passes  = "expr_flattener,partitioning" # Move the pass that checks if the atoms can be squeezed into the hardware
 
 # Get all renames from SSA
 # All lines in stderr start with //
@@ -49,7 +50,7 @@ for line in lines:
 print open(source_file, 'r').read();
 
 # Get number of pipeline stages, (written by partitioning pass)
-out, err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning"])
+out, err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + "," + backend_passes])
 lines = err.splitlines()
 for line in lines:
   if (line.startswith("//") and line.endswith("stages")):
@@ -76,10 +77,10 @@ for field in spec_to_impl_mapping:
   output_fields_in_impl += [spec_to_impl_mapping[field]];
 
 # Compile to spec.so and to impl.so
-program_wrapper(["domino", source_file, frontend_passes + ",banzai_binary"],
+program_wrapper(["domino", source_file, "banzai_binary"],
                 t_stdout = open("./spec.so", "w"),
                 t_stderr = subprocess.PIPE)
-program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + ",partitioning,banzai_binary"],
+program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + "," + backend_passes + ",banzai_binary"],
                 t_stdout = open("./impl.so", "w"),
                 t_stderr = subprocess.PIPE)
 
