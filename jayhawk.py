@@ -32,7 +32,7 @@ original_fields = out.splitlines()
 
 # List out all passes
 frontend_passes = "int_type_checker,desugar_comp_asgn";
-midend_passes   = "if_converter,algebra_simplify,stateful_flanks,ssa,expr_propagater,expr_flattener"
+midend_passes   = "if_converter,algebra_simplify,array_validator,stateful_flanks,ssa,expr_propagater,expr_flattener"
 
 # Get all renames from SSA
 # All lines in stderr start with //
