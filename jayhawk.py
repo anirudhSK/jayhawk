@@ -4,6 +4,18 @@
 import sys
 import subprocess
 
+# Recursively chase renames
+# In the recursive case, we simply add the result because the function already
+# returns a list. In the non-recursive base case, we need a [var] to make it a list
+def get_final_renames(originals, rename_dict):
+  renames = []
+  for var in originals:
+    if (var not in rename_dict):
+      renames += [var]
+    else:
+      renames += get_final_renames(rename_dict[var], rename_dict)
+  return renames
+
 # Program wrapper
 # Takes a command line of program arguements,
 # executes it, and prints something out whether it succeeds or fails
@@ -44,7 +56,10 @@ rename_dict = dict()
 for line in lines:
   if (line.startswith("//")):
     [_, orig, renamed] = line.split()
-    rename_dict[orig] = renamed
+    if (orig in rename_dict):
+      rename_dict[orig] += [renamed]
+    else:
+      rename_dict[orig] = [renamed]
 
 # Print out source file to stdout
 print open(source_file, 'r').read();
@@ -64,17 +79,14 @@ print >> sys.stderr, err
 # Match up fields from spec to implementation
 spec_to_impl_mapping = dict()
 for field in original_fields:
-  if field in rename_dict:
-    spec_to_impl_mapping[field] = rename_dict[field]
-  else:
-    spec_to_impl_mapping[field] = field
+  spec_to_impl_mapping[field] = get_final_renames([field], rename_dict);
 
 # Generate output fields in impl
 # (the ones we need to check for),
 # based on spec_to_impl_mapping
 output_fields_in_impl = []
 for field in spec_to_impl_mapping:
-  output_fields_in_impl += [spec_to_impl_mapping[field]];
+  output_fields_in_impl += spec_to_impl_mapping[field];
 
 # Compile to spec.so and to impl.so
 program_wrapper(["domino", source_file, "banzai_binary"],
@@ -115,12 +127,13 @@ impl_file_out = open("impl.output", "w")
 # Compare spec_output with impl_output
 for input_field in original_fields:
   # Get equivalent fields
-  output_field = spec_to_impl_mapping[input_field]
-  spec_file_out.write("\n" + input_field + "\n")
-  spec_file_out.write("\n".join([str(x) for x in spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]]));
-  impl_file_out.write("\n" + output_field + "\n")
-  impl_file_out.write("\n".join([str(x) for x in impl_output[output_field]]));
-  if (spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)] != impl_output[output_field]):
-    print "ERROR!!!: input_field ", input_field, "and output_field", output_field, " differ in their output sequence"
-    sys.exit(1)
+  output_fields = spec_to_impl_mapping[input_field]
+  for output_field in output_fields:
+    spec_file_out.write("\n" + input_field + "\n")
+    spec_file_out.write("\n".join([str(x) for x in spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)]]));
+    impl_file_out.write("\n" + output_field + "\n")
+    impl_file_out.write("\n".join([str(x) for x in impl_output[output_field]]));
+    if (spec_output[input_field][0:len(spec_output[input_field]) - (pipeline_length - 1)] != impl_output[output_field]):
+      print "ERROR!!!: input_field ", input_field, "and output_field", output_field, " differ in their output sequence"
+      sys.exit(1)
 print "spec and implementation match"
