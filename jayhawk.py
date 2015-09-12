@@ -23,13 +23,13 @@ def program_wrapper(program, t_stdout = subprocess.PIPE, t_stderr = subprocess.P
   sp = subprocess.Popen(program, stdout = t_stdout, stderr = t_stderr)
   out, err = sp.communicate()
   if (sp.returncode != 0):
-    print " ".join(program), " failed with stdout:"
+    print " ".join(program), " failed (non-zero return code) with stdout:"
     print out
     print "stderr:"
     print err
     sys.exit(sp.returncode)
   else :
-    print " ".join(program), " succeeded"
+    print " ".join(program), " completed with return code of zero"
     return (out, err)
 
 # Command line arguments
