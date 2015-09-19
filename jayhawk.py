@@ -45,7 +45,7 @@ original_fields = out.splitlines()
 # List out all passes
 frontend_passes = "int_type_checker,desugar_comp_asgn,if_converter,algebra_simplify,array_validator,stateful_flanks,ssa";
 midend_passes   = "expr_propagater" # Move things that require SSA here like dead code elimination, CSE, constant propagation
-backend_passes  = "expr_flattener,partitioning" # Move the pass that checks if the atoms can be squeezed into the hardware
+backend_passes  = "expr_flattener,cse,partitioning" # Move the pass that checks if the atoms can be squeezed into the hardware
 
 # Get all renames from SSA
 # All lines in stderr start with //
