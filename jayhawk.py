@@ -39,7 +39,7 @@ pipeline_length = 0
 num_ticks = int(sys.argv[3])
 
 # Get all original fields from spec/source
-out, err = program_wrapper(["domino", source_file, "gen_pkt_fields"])
+out, err = program_wrapper(["domino", source_file, "gen_used_fields"])
 original_fields = out.splitlines()
 
 # List out all passes
@@ -62,7 +62,7 @@ for line in lines:
       rename_dict[orig] = [renamed]
 
 # Get surviving packet fields are CSE
-out,  err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + "," + "expr_flattener,cse,gen_pkt_fields"])
+out,  err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + "," + "expr_flattener,cse,gen_used_fields"])
 surviving_fields = out.splitlines()
 for orig in rename_dict:
   # Remove any field from rename_dict,
