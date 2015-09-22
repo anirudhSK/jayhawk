@@ -61,6 +61,19 @@ for line in lines:
     else:
       rename_dict[orig] = [renamed]
 
+# Get surviving packet fields are CSE
+out,  err = program_wrapper(["domino", source_file, frontend_passes + "," + midend_passes + "," + "expr_flattener,cse,gen_pkt_fields"])
+surviving_fields = out.splitlines()
+for orig in rename_dict:
+  # Remove any field from rename_dict,
+  # which isn't in surviving_fields
+  fields_to_remove = []
+  for field in rename_dict[orig]:
+    if field not in surviving_fields:
+      fields_to_remove += [field]
+  for field in fields_to_remove:
+    rename_dict[orig].remove(field)
+
 # Print out source file to stdout
 print open(source_file, 'r').read();
 
